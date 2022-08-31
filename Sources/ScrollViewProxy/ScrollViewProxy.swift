@@ -193,7 +193,7 @@ public struct ScrollViewProxy {
     }
 
     /// Scrolls the view with ID to an edge or corner
-    public func scrollTo<ID: Hashable>(_ id: ID, alignment: Alignment = .top, animated: Bool = true) {
+    public func scrollTo<ID: Hashable>(_ id: ID, alignment: Alignment? = nil, animated: Bool = true) {
         guard let scrollView = coordinator.scrollView else { return }
         guard let cellFrame = coordinator.frames[id] else {
             return print("ID (\(id)) not found, make sure to add views with `.id(_:scrollView:)`. Did find: \(coordinator.frames)")
@@ -203,7 +203,7 @@ public struct ScrollViewProxy {
         scrollView.scrollRectToVisible(visibleFrame, animated: animated)
     }
 
-    private func frame(_ frame: CGRect, with alignment: Alignment) -> CGRect {
+    private func frame(_ frame: CGRect, with alignment: Alignment?) -> CGRect {
         guard let scrollView = coordinator.scrollView else { return frame }
 
         var visibleSize = scrollView[keyPath: visibleSizePath]
@@ -211,36 +211,40 @@ public struct ScrollViewProxy {
         visibleSize.height -= scrollView[keyPath: adjustedContentInsetPath].vertical
 
         var origin = CGPoint.zero
-        switch alignment {
-        case .center:
-            origin.x = frame.midX - visibleSize.width / 2
-            origin.y = frame.midY - visibleSize.height / 2
-        case .leading:
-            origin.x = frame.minX
-            origin.y = frame.midY - visibleSize.height / 2
-        case .trailing:
-            origin.x = frame.maxX - visibleSize.width
-            origin.y = frame.midY - visibleSize.height / 2
-        case .top:
-            origin.x = frame.midX - visibleSize.width / 2
-            origin.y = frame.minY
-        case .bottom:
-            origin.x = frame.midX - visibleSize.width / 2
-            origin.y = frame.maxY - visibleSize.height
-        case .topLeading:
-            origin.x = frame.minX
-            origin.y = frame.minY
-        case .topTrailing:
-            origin.x = frame.maxX - visibleSize.width
-            origin.y = frame.minY
-        case .bottomLeading:
-            origin.x = frame.minX
-            origin.y = frame.maxY - visibleSize.height
-        case .bottomTrailing:
-            origin.x = frame.maxX - visibleSize.width
-            origin.y = frame.maxY - visibleSize.height
-        default:
-            fatalError("Not implemented")
+        if let alignment = alignment {
+            switch alignment {
+            case .center:
+                origin.x = frame.midX - visibleSize.width / 2
+                origin.y = frame.midY - visibleSize.height / 2
+            case .leading:
+                origin.x = frame.minX
+                origin.y = frame.midY - visibleSize.height / 2
+            case .trailing:
+                origin.x = frame.maxX - visibleSize.width
+                origin.y = frame.midY - visibleSize.height / 2
+            case .top:
+                origin.x = frame.midX - visibleSize.width / 2
+                origin.y = frame.minY
+            case .bottom:
+                origin.x = frame.midX - visibleSize.width / 2
+                origin.y = frame.maxY - visibleSize.height
+            case .topLeading:
+                origin.x = frame.minX
+                origin.y = frame.minY
+            case .topTrailing:
+                origin.x = frame.maxX - visibleSize.width
+                origin.y = frame.minY
+            case .bottomLeading:
+                origin.x = frame.minX
+                origin.y = frame.maxY - visibleSize.height
+            case .bottomTrailing:
+                origin.x = frame.maxX - visibleSize.width
+                origin.y = frame.maxY - visibleSize.height
+            default:
+                fatalError("Not implemented")
+            }
+        } else {
+            return frame
         }
 
         origin.x = max(0, min(origin.x, scrollView[keyPath: contentSizePath].width - visibleSize.width))
